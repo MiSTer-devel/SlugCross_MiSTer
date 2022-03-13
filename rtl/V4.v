@@ -28,7 +28,7 @@ module V4(
     
     assign Red[3] = (Hcount >= 10'b0100110100) & (Hcount <= 10'b0100111011) &  & 
                     ((Vcount[9] | Vcount[8] | Vcount[7] | Vcount[6] | Vcount[5] | Vcount[4] | Vcount[3]) & 
-                    (~(~Vcount[9] & Vcount[8] & Vcount[7] & Vcount[6] & ~Vcount[5] & Vcount[4] & Vcount[3])));;
+                    (~(~Vcount[9] & Vcount[8] & Vcount[7] & Vcount[6] & ~Vcount[5] & Vcount[4] & Vcount[3])));
     assign Red[2] = Red[3];  
     assign Red[1] = Red[3];
     assign Red[0] = Red[3];                          

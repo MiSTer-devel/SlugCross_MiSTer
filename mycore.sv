@@ -202,52 +202,36 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 
 `include "build_id.v" 
 localparam CONF_STR = {
-	"MyCore;;",
+	"SlugCross;;",
 	"-;",
 	"O89,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"O2,TV Mode,NTSC,PAL;",
-	"O34,Noise,White,Red,Green,Blue;",
 	"-;",
-	"P1,Test Page 1;",
-	"P1-;",
-	"P1-, -= Options in page 1 =-;",
-	"P1-;",
-	"P1O5,Option 1-1,Off,On;",
-	"d0P1F1,BIN;",
-	"H0P1O6,Option 1-2,Off,On;",
-	"-;",
-	"P2,Test Page 2;",
-	"P2-;",
-	"P2-, -= Options in page 2 =-;",
-	"P2-;",
-	"P2S0,DSK;",
-	"P2O67,Option 2,1,2,3,4;",
-	"-;",
-	"-;",
-	"T0,Reset;",
 	"R0,Reset and close OSD;",
+	"J1,C;",
+	"jn,A;",
+	"jp,A;",
 	"V,v",`BUILD_DATE 
 };
 
-wire forced_scandoubler;
-wire  [1:0] buttons;
-wire [31:0] status;
-wire [10:0] ps2_key;
+wire [21:0] gamma_bus;
+
+wire  [2:0] buttons;
+wire [15:0] joyA;
+wire [63:0] status;
+
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
 	.EXT_BUS(),
-	.gamma_bus(),
-
-	.forced_scandoubler(forced_scandoubler),
+	.gamma_bus(gamma_bus),
 
 	.buttons(buttons),
 	.status(status),
-	.status_menumask({status[5]}),
-	
-	.ps2_key(ps2_key)
+
+	.joystick_0(joyA),
+
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
@@ -266,40 +250,32 @@ wire reset = RESET | status[0] | buttons[1];
 
 wire [1:0] col = status[4:3];
 
-wire HBlank;
-wire HSync;
-wire VBlank;
-wire VSync;
-wire ce_pix;
-wire [7:0] video;
+wire vsync, hsync;
+wire [3:0] red;
+wire [3:0] blue;
+wire [3:0] green;
 
-mycore mycore
+TopLevel TopLevel
 (
-	.clk(clk_sys),
-	.reset(reset),
-	
-	.pal(status[2]),
-	.scandouble(forced_scandoubler),
-
-	.ce_pix(ce_pix),
-
-	.HBlank(HBlank),
-	.HSync(HSync),
-	.VBlank(VBlank),
-	.VSync(VSync),
-
-	.video(video)
+	.clkin(clk_sys),
+	.btnU(),
+	.btnD(),
+	.btnL(),
+	.btnR(),
+	.btnC(),
+	.sw(),
+	.Hsync(hsync),
+	.Vsync(vsync),
+	.vgaRed(red),
+	.vgaBlue(blue),
+	.vgaGreen(green),
+	.seg(),
+	.dp(),
+	.an()
 );
 
 assign CLK_VIDEO = clk_sys;
 assign CE_PIXEL = ce_pix;
-
-assign VGA_DE = ~(HBlank | VBlank);
-assign VGA_HS = HSync;
-assign VGA_VS = VSync;
-assign VGA_G  = (!col || col == 2) ? video : 8'd0;
-assign VGA_R  = (!col || col == 1) ? video : 8'd0;
-assign VGA_B  = (!col || col == 3) ? video : 8'd0;
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
